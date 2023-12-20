@@ -8,6 +8,7 @@ let Homeworld = document.querySelector('#Homeworld');
 let Films = document.querySelector('#Films');
 let Tital = document.querySelector('#exampleModalLabel');
 let prevbtn = document.querySelector('#page1');
+let spinner = document.querySelector("#spinner");
 
 let CurrentPage;
 let imageDataArr = [];
@@ -17,11 +18,12 @@ const init = () => {
 }
 
 const loadData = async (url) => {
+    spinner.hidden = false;
     CurrentPageNo = url.slice(35)
     const res = await fetch(url);
     const data = await res.json();
     CurrentPage = data;
-
+    spinner.hidden = true;
     addCard(data.results)
     // console.log(CurrentPage);
 }
@@ -29,24 +31,24 @@ const loadData = async (url) => {
 const addCard = (res) => {
     imageDataArr = [];
     res.forEach(async (element, index) => {
-        
+
         const imgsrc = `https://starwars-visualguide.com/assets/img/characters/${element.url.split('/')[5]}.jpg`;
 
-        let html = `<div id="char${element.url.split('/')[5]}" class="card mb-5" style="width: 15rem;" data-bs-toggle="modal" data-bs-target="#exampleModal">
+        let html = `<div id="char${element.url.split('/')[5]}" class="card mb-5 mx-2" style="width: 15rem;" data-bs-toggle="modal" data-bs-target="#exampleModal">
         <img src="${imgsrc}" class="card-img-top">
         <div class="card-body">
             <h5 class="card-title">${element.name}</h5>
-            </div>
-            </div> `
-        container.insertAdjacentHTML("beforeend", html);
+        </div>
+    </div> `;
+    container.insertAdjacentHTML("beforeend", html);
     });
 
-    if(!CurrentPage.previous){
+    if (!CurrentPage.previous) {
         prev.closest('.page-item').classList.add('disabled');
     }
-    if(!CurrentPage.next){
+    if (!CurrentPage.next) {
         next.closest('.page-item').classList.add('disabled');
-    }  
+    }
 }
 
 next.addEventListener('click', () => {
@@ -68,14 +70,19 @@ prev.addEventListener('click', () => {
 
 
 const modelData = (sp) => {
+
+    let loadingAnimation = '<img class="textLoading" src="loading.gif" alt="">';
     // console.log(sp);
+    Species.innerHTML = loadingAnimation;
+    Homeworld.innerHTML = loadingAnimation;
+    Films.innerHTML = loadingAnimation;
     Promise.all(sp.map(ins => Promise.all(ins.map(i => getJSON(i))))).
         then(res => {
-            let [[species], [homeworld], films] = res;            
+            let [[species], [homeworld], films] = res;
             Species.innerText = species ? species.name : 'Unknown';
             Homeworld.innerText = homeworld ? homeworld.name : 'Unknown';
             Films.innerText = films ? films.map(f => f.title).join(', ') : 'Unknown';
-            
+
             document.querySelector('.btn-close').addEventListener('click', function () {
                 Birth_Year.innerText = '';
                 Gender.innerText = '';
@@ -83,23 +90,24 @@ const modelData = (sp) => {
                 Homeworld.innerText = '';
                 Films.innerText = '';
             })
-    })
+        })
 }
 
 const openmodel = (e) => {
+
     if (!e.target.closest('.card')) return;
 
     let char = e.target.closest('.card').id.slice(4);
-    const imgsrc = `https://starwars-visualguide.com/assets/img/characters/${char}.jpg`;   
-    if(char >= 18){
+    const imgsrc = `https://starwars-visualguide.com/assets/img/characters/${char}.jpg`;
+    if (char >= 18) {
         char--
     }
-    console.log('char id : ',char);
+    console.log('char id : ', char);
     console.log(imgsrc);
-    
-    console.log('currentPgae', (char - ((CurrentPageNo - 1) * 10) - 1));    
+
+    console.log('currentPgae', (char - ((CurrentPageNo - 1) * 10) - 1));
     let charData = CurrentPage.results[char - ((CurrentPageNo - 1) * 10) - 1];
-    console.log(char );
+    console.log(char);
 
     Tital.innerText = charData.name;
     Birth_Year.innerText = charData.birth_year;
